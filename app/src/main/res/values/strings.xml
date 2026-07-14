@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NoLand</string>
+    <string name="app_icon">App Icon</string>
+    <string name="select_app_shortcuts">Select App Shortcuts</string>
+    <string name="choose_apps_description">Choose up to 6 apps to display in the shortcuts island</string>
+    <string name="search_apps">Search apps...</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="maximum_apps_allowed">Maximum %d apps allowed</string>
+    <string name="apps_saved">Apps saved</string>
+    <string name="cannot_launch_app">Cannot launch app</string>
+    <string name="error_launching_app">Error launching app</string>
+    <string name="configure_app_shortcuts">Configure App Shortcuts</string>
+
+    <!-- Missing strings inferred from layout usages -->
+    <string name="enable_smart_edge">Enable Smart Edge</string>
+    <string name="welcome">Welcome</string>
+    <string name="to_get_started_the_app_needs_some_required_permissions">To get started, the app needs some required permissions</string>
+    <string name="notification_access">Notification Access</string>
+    <string name="needed_to_show_notifications_and_media_sessions">Needed to show notifications and media sessions</string>
+    <string name="record_audio_from_apps">Record audio from apps</string>
+    <string name="needed_to_show_song_visualizer_never_to_be_used_for_recording_mic_audio">Needed to show song visualizer (never used for recording audio)</string>
+    <string name="Storage_permission">Storage Permission</string>
+    <string name="Storage_perm_desc">Storage Permission Description</string>
+    <string name="color_hex">Color Hex</string>
+    <string name="accent_color_set">Accent Color Set</string>
+    <string name="apply">Apply</string>
+    <string name="reset2">Reset</string>
+    <string name="cover">Cover</string>
+    <string name="back">Back</string>
+    <string name="pause_play">Pause/Play</string>
+    <string name="next">Next</string>
+    <string name="x_offset">X Offset</string>
+    <string name="y_offset">Y Offset</string>
+    <string name="height_of_overlay_when_shrinked">Height of overlay when shrinked</string>
+    <string name="minimum_width_of_overlay_when_closed">Minimum width of overlay when closed</string>
+    <string name="space_between_icons_when_overlay_is_shrinked">Space between icons when overlay is shrinked</string>
+    <string name="reset">Reset</string>
+    <string name="enable_hardware_acceleration">Enable Hardware Acceleration</string>
+    <string name="all">All</string>
+    <string name="access_description">Access Description</string>
+</resources>
