@@ -1,5 +1,5 @@
 <h1 align="center">
-  # NoLand
+  NoLand
 </h1>
 
 <p align="center">
