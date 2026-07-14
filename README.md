@@ -1,5 +1,5 @@
 <h1 align="center">
-  NoLand
+  DynamicBob
 </h1>
 
 <p align="center">
@@ -10,5 +10,5 @@
 </p>
 
 <p align="center">
-  <strong>NoLand</strong> - The New Generation of Dynamic Islands for Android. This isn't just another project, it's a revolution.
+  <strong>DynamicBob</strong> - The New Generation of Dynamic Islands for Android. This isn't just another project, it's a revolution.
 </p>
