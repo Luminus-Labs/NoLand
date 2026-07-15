@@ -229,7 +229,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         sharedPreferences.getAll().forEach((key, value) -> {
             if (value instanceof Boolean) {
                 b.putBoolean(key, (boolean) value);
-
+            } else if (value instanceof Float) {
+                b.putFloat(key, (float) value);
+            } else if (value instanceof Integer) {
+                b.putInt(key, (int) value);
+            } else if (value instanceof String) {
+                b.putString(key, (String) value);
             }
         });
         intent.putExtra("settings", b);

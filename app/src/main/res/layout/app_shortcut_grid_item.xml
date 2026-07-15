@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="60dp"
-    android:layout_height="80dp"
+    android:layout_width="50dp"
+    android:layout_height="70dp"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:padding="4dp">
+    android:padding="2dp">
 
     <ImageView
         android:id="@+id/app_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:scaleType="centerInside"
         android:contentDescription="@string/app_icon" />
 
@@ -17,10 +17,11 @@
         android:id="@+id/app_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textSize="10sp"
+        android:layout_marginTop="2dp"
+        android:textSize="9sp"
+        android:textColor="@color/white"
         android:textAlignment="center"
-        android:maxLines="2"
+        android:maxLines="1"
         android:ellipsize="end" />
 
 </LinearLayout>

@@ -104,18 +104,21 @@ public class OverlayService extends AccessibilityService {
                 assert settings != null;
                 Log.d("OverlayService", "Received layout change broadcast: " + settings.toString());
                 for (String s : settings.keySet()) {
-                    if (settings.get(s) instanceof Float) {
-                        sharedPreferences.putFloat(s, settings.getFloat(s));
+                    Object val = settings.get(s);
+                    if (val instanceof Float) {
+                        sharedPreferences.putFloat(s, (float) val);
+                    } else if (val instanceof Integer) {
+                        sharedPreferences.putFloat(s, (float) (int) val);
                     }
                 }
                 if (mView != null && mWindowManager != null) {
                     WindowManager.LayoutParams mParams = (WindowManager.LayoutParams) mView.getLayoutParams();
 
-                    minWidth = dpToInt((int) sharedPreferences.getFloat("overlay_w", 83));
-                    minHeight = dpToInt((int) sharedPreferences.getFloat("overlay_h", 40));
-                    gap = dpToInt((int) sharedPreferences.getFloat("overlay_gap", 50));
-                    y = (int) (sharedPreferences.getFloat("overlay_y", 0.67f) * 0.01 * metrics.heightPixels);
-                    x = (int) (sharedPreferences.getFloat("overlay_x", 0) * 0.01 * metrics.widthPixels);
+                    minWidth = dpToInt((int) getFloatSafe("overlay_w", 83));
+                    minHeight = dpToInt((int) getFloatSafe("overlay_h", 40));
+                    gap = dpToInt((int) getFloatSafe("overlay_gap", 50));
+                    y = (int) (getFloatSafe("overlay_y", 0.67f) * 0.01 * metrics.heightPixels);
+                    x = (int) (getFloatSafe("overlay_x", 0) * 0.01 * metrics.widthPixels);
                     
                     Log.d("OverlayService", "Updating layout: w=" + minWidth + ", h=" + minHeight + ", x=" + x + ", y=" + y);
                     
@@ -170,8 +173,15 @@ public class OverlayService extends AccessibilityService {
                 Bundle settings = Objects.requireNonNull(intent.getExtras()).getBundle("settings");
                 assert settings != null;
                 for (String s : settings.keySet()) {
-                    if (settings.get(s) instanceof Boolean) {
-                        sharedPreferences.putBoolean(s, settings.getBoolean(s));
+                    Object val = settings.get(s);
+                    if (val instanceof Boolean) {
+                        sharedPreferences.putBoolean(s, (boolean) val);
+                    } else if (val instanceof Float) {
+                        sharedPreferences.putFloat(s, (float) val);
+                    } else if (val instanceof Integer) {
+                        sharedPreferences.putInt(s, (int) val);
+                    } else if (val instanceof String) {
+                        sharedPreferences.putString(s, (String) val);
                     }
                 }
                 plugins.forEach(BasePlugin::onDestroy);
@@ -222,12 +232,19 @@ public class OverlayService extends AccessibilityService {
                 binded_plugin.onExpand();
 
         } else {
-            animateOverlay(minHeight + dpToInt(20), minWidth + dpToInt(20), false, new CallBack(), new CallBack() {
-                @Override
-                public void onFinish() {
-                    animateOverlay(minHeight, minWidth, false, new CallBack(), new CallBack(), false);
-                }
-            }, false);
+            Optional<BasePlugin> shortcutPlugin = plugins.stream()
+                    .filter(p -> p.getID().equals("app_shortcut_island"))
+                    .findFirst();
+            if (shortcutPlugin.isPresent()) {
+                enqueue(shortcutPlugin.get());
+            } else {
+                animateOverlay(minHeight + dpToInt(20), minWidth + dpToInt(20), false, new CallBack(), new CallBack() {
+                    @Override
+                    public void onFinish() {
+                        animateOverlay(minHeight, minWidth, false, new CallBack(), new CallBack(), false);
+                    }
+                }, false);
+            }
         }
     }
 
@@ -331,6 +348,15 @@ public class OverlayService extends AccessibilityService {
 
     public int textColor;
 
+    private float getFloatSafe(String key, float defaultValue) {
+        if (sharedPreferences.containsKey(key)) {
+            Object val = sharedPreferences.get(key);
+            if (val instanceof Float) return (float) val;
+            if (val instanceof Integer) return (float) (int) val;
+        }
+        return defaultValue;
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void init() {
 
@@ -339,37 +365,42 @@ public class OverlayService extends AccessibilityService {
 
         flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
 
+        // Ensure metrics are up to date
+        if (mWindowManager != null) {
+            mWindowManager.getDefaultDisplay().getMetrics(metrics);
+        } else {
+            metrics = getResources().getDisplayMetrics();
+        }
 
-        if (minWidth == 0) {
-            minWidth = dpToInt((int) sharedPreferences.getFloat("overlay_w", 83));
-        }
-        if (minHeight == 0) {
-            minHeight = dpToInt((int) sharedPreferences.getFloat("overlay_h", 40));
-        }
-        if (gap == 0) {
-            gap = dpToInt((int) sharedPreferences.getFloat("overlay_gap", 50));
-        }
+        // Always read latest values from sharedPreferences bundle
+        minWidth = dpToInt((int) getFloatSafe("overlay_w", 83));
+        minHeight = dpToInt((int) getFloatSafe("overlay_h", 40));
+        gap = dpToInt((int) getFloatSafe("overlay_gap", 50));
+        x = (int) (getFloatSafe("overlay_x", 0) * 0.01f * metrics.widthPixels);
+        y = (int) (getFloatSafe("overlay_y", 0.67f) * 0.01f * metrics.heightPixels);
+
         color = sharedPreferences.getInt("color", getColor(R.color.black));
         textColor = isColorDark(color) ? getColor(R.color.white) : getColor(R.color.black);
         last_min_size = minWidth;
+        
         WindowManager.LayoutParams mParams = getParams(minWidth, minHeight, flags);
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         getBaseContext().setTheme(R.style.Theme_Luminus);
         mView = layoutInflater.inflate(R.layout.overlay_layout, null);
+        mView.setVisibility(View.VISIBLE);
 
+        // Ensure gap is applied to the blank space
+        if (mView.findViewById(R.id.blank_space) != null) {
+            mView.findViewById(R.id.blank_space).setMinimumWidth(gap);
+        }
 
         ctx = DynamicColors.wrapContextIfAvailable(getBaseContext(), com.google.android.material.R.style.ThemeOverlay_Material3_DynamicColors_DayNight);
         mParams.gravity = Gravity.TOP | Gravity.CENTER;
-        if (y == 0) {
-            y = (int) (sharedPreferences.getFloat("overlay_y", 0.67f) * 0.01f * metrics.heightPixels);
-        }
         mParams.y = y;
-        if (x == 0) {
-            x = (int) (sharedPreferences.getFloat("overlay_x", 0) * 0.01f * metrics.widthPixels);
-        }
+        mParams.x = x;
+        
         mView.setBackgroundTintList(ColorStateList.valueOf(color));
 
-        mParams.x = x;
         Runnable mLongPressed = this::expandOverlay;
         try {
 
@@ -618,11 +649,12 @@ public class OverlayService extends AccessibilityService {
                 View replace = mView.findViewById(R.id.binded);
                 if (replace == null) return;
                 ((ViewGroup) mView).removeView(replace);
-                mView.getLayoutParams().width = minWidth;
-                mView.setLayoutParams(mView.getLayoutParams());
+                WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
+                params.width = minWidth;
+                params.height = minHeight;
+                mWindowManager.updateViewLayout(mView, params);
             }
         }, false);
-
     }
 
     private void bindPlugin() {
@@ -651,13 +683,8 @@ public class OverlayService extends AccessibilityService {
             constraintSet.connect(view.getId(), ConstraintSet.TOP, mView.getId(), ConstraintSet.TOP, 0);
             constraintSet.connect(view.getId(), ConstraintSet.BOTTOM, mView.getId(), ConstraintSet.BOTTOM, 0);
             constraintSet.applyTo(mainLayout);
-            params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            View vGap = mView.findViewById(R.id.blank_space);
-            if (vGap != null) {
-                ViewGroup.LayoutParams params1 = vGap.getLayoutParams();
-                vGap.setMinimumWidth(gap);
-                vGap.setLayoutParams(params1);
-            }
+            params.width = mView.getWidth();
+            params.height = mView.getHeight();
             mWindowManager.updateViewLayout(mView, params);
             if (binded_plugin != null) binded_plugin.onBindComplete();
             return;
@@ -670,7 +697,9 @@ public class OverlayService extends AccessibilityService {
         constraintSet.connect(view.getId(), ConstraintSet.TOP, mView.getId(), ConstraintSet.TOP, 0);
         constraintSet.connect(view.getId(), ConstraintSet.BOTTOM, mView.getId(), ConstraintSet.BOTTOM, 0);
         constraintSet.applyTo(mainLayout);
-        params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        
+        params.width = mView.getWidth();
+        params.height = mView.getHeight();
         View vGap = mView.findViewById(R.id.blank_space);
         if (vGap != null) {
             ViewGroup.LayoutParams params1 = vGap.getLayoutParams();
@@ -752,7 +781,7 @@ public class OverlayService extends AccessibilityService {
     public final Handler mHandler = new Handler();
 
 
-    private View mView;
+    public View mView;
 
     public WindowManager mWindowManager;
 

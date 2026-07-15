@@ -9,8 +9,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.GridView;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -18,6 +21,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.luminus.labs.dynamicbob.R;
 import com.luminus.labs.dynamicbob.plugins.BasePlugin;
 import com.luminus.labs.dynamicbob.services.OverlayService;
+import com.luminus.labs.dynamicbob.utils.CallBack;
 import com.luminus.labs.dynamicbob.utils.SettingStruct;
 
 import java.util.ArrayList;
@@ -28,8 +32,7 @@ import java.util.Set;
 public class AppShortcutIsland extends BasePlugin {
     private OverlayService overlayService;
     private SharedPreferences sharedPreferences;
-    private GridView appGridView;
-    private AppShortcutAdapter adapter;
+    private LinearLayout appRow;
     private List<AppInfo> selectedApps;
     private ConstraintLayout containerView;
     private static final String PREF_SELECTED_APPS = "app_shortcut_selected_apps";
@@ -61,25 +64,31 @@ public class AppShortcutIsland extends BasePlugin {
                 R.layout.app_shortcut_island_layout, null);
         containerView.setId(R.id.binded);
         
-        appGridView = containerView.findViewById(R.id.app_grid);
+        appRow = containerView.findViewById(R.id.app_row);
         
         if (selectedApps.isEmpty()) {
             selectedApps = getDefaultApps();
         }
-        
-        adapter = new AppShortcutAdapter(overlayService, selectedApps, app -> {
-            launchApp(app.packageName);
-            overlayService.dequeue(this);
-        });
-        appGridView.setAdapter(adapter);
+
+        for (AppInfo app : selectedApps) {
+            View itemView = inflater.inflate(R.layout.app_shortcut_grid_item, appRow, false);
+            ((ImageView) itemView.findViewById(R.id.app_icon)).setImageDrawable(app.icon);
+            ((TextView) itemView.findViewById(R.id.app_label)).setText(app.appName);
+            itemView.setOnClickListener(v -> {
+                launchApp(app.packageName);
+                overlayService.dequeue(this);
+            });
+            itemView.setAlpha(0);
+            appRow.addView(itemView);
+        }
         
         return containerView;
     }
 
     @Override
     public void onUnbind() {
-        if (appGridView != null) {
-            appGridView.setAdapter(null);
+        if (appRow != null) {
+            appRow.removeAllViews();
         }
     }
 
@@ -89,8 +98,46 @@ public class AppShortcutIsland extends BasePlugin {
     }
 
     @Override
+    public void onBindComplete() {
+        super.onBindComplete();
+        
+        containerView.post(() -> {
+            // Measure the target size required for the grid
+            int widthSpec = View.MeasureSpec.makeMeasureSpec(overlayService.metrics.widthPixels, View.MeasureSpec.AT_MOST);
+            int heightSpec = View.MeasureSpec.makeMeasureSpec(overlayService.metrics.heightPixels, View.MeasureSpec.AT_MOST);
+            containerView.measure(widthSpec, heightSpec);
+            
+            int targetW = containerView.getMeasuredWidth();
+            int targetH = containerView.getMeasuredHeight();
+
+            // Animate from small to the measured size
+            overlayService.animateOverlay(
+                    targetH,
+                    targetW,
+                    true, // Set to true to center the expansion
+                    new CallBack(),
+                    new CallBack() {
+                        @Override
+                        public void onFinish() {
+                            for (int i = 0; i < appRow.getChildCount(); i++) {
+                                View child = appRow.getChildAt(i);
+                                child.animate().alpha(1).setDuration(200).setStartDelay(i * 40L).start();
+                            }
+                            // After animation, allow it to be wrap_content for dynamic updates
+                            WindowManager.LayoutParams params = (WindowManager.LayoutParams) overlayService.mView.getLayoutParams();
+                            params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                            overlayService.mWindowManager.updateViewLayout(overlayService.mView, params);
+                        }
+                    },
+                    false
+            );
+        });
+    }
+
+    @Override
     public void onExpand() {
-        // Not used
+        openAppPicker(overlayService);
     }
 
     @Override

@@ -98,7 +98,7 @@ public class NotificationPlugin extends BasePlugin {
         } else {
             context.registerReceiver(broadcastReceiver, filter);
         }
-        enabled_apps = NotificationManageAppsAdapter.parseEnabledApps(context.sharedPreferences.getString("notifications_apps", ""));
+        enabled_apps = NotificationManageAppsAdapter.parseEnabledApps(context.sharedPreferences.containsKey("notifications_apps") ? context.sharedPreferences.getString("notifications_apps") : "");
     }
 
     NotificationMeta meta;
