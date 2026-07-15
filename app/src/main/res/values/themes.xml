@@ -29,6 +29,9 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
         <item name="android:statusBarColor">@color/md_theme_dark_surface</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:fontFamily">@font/nf</item>
+        <item name="android:fontFamily">@font/ntype</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.App.Headline3</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.App.Headline5</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.App.Headline6</item>
     </style>
 </resources>

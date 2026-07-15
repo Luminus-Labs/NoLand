@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/welcome"
+        android:fontFamily="@font/ndot"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline3"
         android:textColor="?attr/colorPrimary"
         app:layout_constraintStart_toStartOf="parent"
@@ -70,6 +71,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/notification_access"
+                    android:fontFamily="@font/ndot"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
@@ -124,6 +126,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/record_audio_from_apps"
+                    android:fontFamily="@font/ndot"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
@@ -177,6 +180,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/Storage_permission"
+                    android:fontFamily="@font/ndot"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                     android:textColor="@color/white"
                     android:textSize="18sp" />

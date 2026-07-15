@@ -80,8 +80,7 @@
                 android:paddingRight="15dip"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:fontFamily="@font/nf"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textAppearance="@style/TextAppearance.App.Headline6"
                 android:textColor="@color/white"
                 android:textSize="18sp" />
         </LinearLayout>
@@ -105,8 +104,7 @@
                 android:paddingRight="15dip"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:fontFamily="@font/nf"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+                android:textAppearance="@style/TextAppearance.App.Headline5"
                 android:textColor="@color/white"
                 android:textSize="14sp" />
         </LinearLayout>

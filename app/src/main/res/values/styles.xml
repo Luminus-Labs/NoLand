@@ -18,4 +18,17 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+
+    <style name="TextAppearance.App.Headline3" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">@font/ndot</item>
+        <item name="fontFamily">@font/ndot</item>
+    </style>
+    <style name="TextAppearance.App.Headline5" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@font/ndot</item>
+        <item name="fontFamily">@font/ndot</item>
+    </style>
+    <style name="TextAppearance.App.Headline6" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/ndot</item>
+        <item name="fontFamily">@font/ndot</item>
+    </style>
 </resources>

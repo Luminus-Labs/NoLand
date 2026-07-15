@@ -29,9 +29,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.luminus.labs.noland.BuildConfig;
 import com.luminus.labs.noland.R;
 import com.luminus.labs.noland.plugins.ExportedPlugins;
@@ -64,6 +66,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         init();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
+        if (collapsingToolbarLayout != null) {
+            collapsingToolbarLayout.setExpandedTitleTypeface(ResourcesCompat.getFont(this, R.font.ndot));
+            collapsingToolbarLayout.setCollapsedTitleTypeface(ResourcesCompat.getFont(this, R.font.ndot));
+        }
+
         if ((Settings.Secure.getString(this.getContentResolver(), "enabled_notification_listeners") != null && !Settings.Secure.getString(this.getContentResolver(), "enabled_notification_listeners").contains(getApplicationContext().getPackageName())
         ) || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             startActivity(new Intent(this, PermissionActivity.class));

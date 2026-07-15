@@ -17,8 +17,7 @@
         android:layout_marginEnd="10dp"
         android:layout_toStartOf="@+id/enable_switch2"
         android:text="@string/enable_hardware_acceleration"
-        android:fontFamily="@font/nf"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        android:textAppearance="@style/TextAppearance.App.Headline5"
         android:textSize="18sp" />
 
 

@@ -45,6 +45,7 @@
             android:paddingRight="15dip"
             android:scrollHorizontally="true"
             android:singleLine="true"
+            android:fontFamily="@font/ndot"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             android:textColor="@color/white"
             android:textSize="18sp" />
