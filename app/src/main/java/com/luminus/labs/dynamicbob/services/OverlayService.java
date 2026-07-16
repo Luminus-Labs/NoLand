@@ -60,6 +60,11 @@ import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.Service;
+import androidx.core.app.NotificationCompat;
 import com.luminus.labs.dynamicbob.plugins.BasePlugin;
 import com.luminus.labs.dynamicbob.plugins.ExportedPlugins;
 import com.luminus.labs.dynamicbob.utils.CallBack;
@@ -93,8 +98,14 @@ public class OverlayService extends AccessibilityService {
                 if (sharedPreferences.getBoolean("enable_on_lockscreen", false)) return;
                 if (mView != null) {
                     mView.setVisibility(View.VISIBLE);
-
-
+                    // Ensure it's still in the WindowManager
+                    try {
+                        if (mView.getParent() == null) {
+                            init();
+                        }
+                    } catch (Exception ignored) {}
+                } else {
+                    init();
                 }
             } else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
                 if (sharedPreferences.getBoolean("enable_on_lockscreen", false)) return;
@@ -148,24 +159,14 @@ public class OverlayService extends AccessibilityService {
                     } catch (Exception e) {
                         Log.e("IMAGE_CHANGED", "Failed to load image URI", e);
                     }
-                }else {
-                    int targetColor = 0x80000000;
+                } else if (mView != null && mainView != null) {
+                    mainView.setBackgroundResource(R.drawable.rounded_corner);
                     color = Objects.requireNonNull(intent.getExtras()).getInt("color", Color.RED);
 
-                    if (color == targetColor) {
-                        textColor = isColorDark(color) ? getColor(R.color.white) : getColor(R.color.black);
-                        mView.findViewById(R.id.main).setBackgroundTintList(ColorStateList.valueOf(color));
-
-
-                    }  else {
-                        textColor = isColorDark(color) ? getColor(R.color.white) : getColor(R.color.black);
-                        if (mView != null) {
-                            mView.findViewById(R.id.main).setBackgroundTintList(ColorStateList.valueOf(color));
-                            if (binded_plugin != null) {
-                                binded_plugin.onTextColorChange();
-                            }
-                        }
-
+                    textColor = isColorDark(color) ? getColor(R.color.white) : getColor(R.color.black);
+                    mainView.setBackgroundTintList(ColorStateList.valueOf(color));
+                    if (binded_plugin != null) {
+                        binded_plugin.onTextColorChange();
                     }
                 }
 
@@ -259,12 +260,8 @@ public class OverlayService extends AccessibilityService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //ConstraintLayout constraintLayout = mView.findViewById(R.id.main);
-        ConstraintLayout mainLayout;
-        mainLayout = mView.findViewById(R.id.main);
-
+        if (mView == null) init();
         return START_STICKY;
-
     }
 
     public Bundle sharedPreferences = new Bundle();
@@ -285,6 +282,9 @@ public class OverlayService extends AccessibilityService {
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
+        if (sharedPreferences.getBoolean("persistent_service", true)) {
+            startForegroundService();
+        }
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             throwable.printStackTrace();
             if (sharedPreferences.getBoolean("clip_copy_enabled", true)) {
@@ -485,6 +485,31 @@ public class OverlayService extends AccessibilityService {
         });
         binded_plugin = null;
         bindPlugin();
+        if (sharedPreferences.getBoolean("persistent_service", true)) {
+            startForegroundService();
+        } else {
+            stopForeground(Service.STOP_FOREGROUND_REMOVE);
+        }
+    }
+
+    private void startForegroundService() {
+        final String CHANNEL_ID = getPackageName() + ".persistent_channel";
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Persistent Island Service", NotificationManager.IMPORTANCE_LOW);
+            manager.createNotificationChannel(channel);
+        }
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Dynamic Bob")
+                .setContentText("Island is running")
+                .setSmallIcon(R.drawable.launcher_foreground)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setOngoing(true)
+                .build();
+
+        startForeground(1002, notification);
     }
 
     ArrayList<String> queued = new ArrayList<>();

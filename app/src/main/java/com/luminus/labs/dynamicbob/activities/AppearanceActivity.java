@@ -41,10 +41,13 @@ public class AppearanceActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.appearence_layout);
+        setContentView(R.layout.appearance_layout);
 
         setSupportActionBar(findViewById(R.id.toolbar));
-        Objects.requireNonNull(getSupportActionBar()).setDefaultDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Appearance");
+        }
         selectedImageView = findViewById(R.id.selected_image_view);
         Button selectImageBtn = findViewById(R.id.select_image_btn);
 
@@ -113,13 +116,17 @@ public class AppearanceActivity extends AppCompatActivity {
         findViewById(R.id.apply_btn).setOnClickListener(l -> {
             String value = null;
             String AllaccentColorValue = null;
-            if (Objects.requireNonNull(t.getEditText()).getText() != null && Objects.requireNonNull(t2.getEditText()).getText() != null)
-                value = "#" + t.getEditText().getText().toString();AllaccentColorValue = "#" + t2.getEditText().getText().toString();
-            if (value != null) {
-                if (isValidColor(value)) {
+            if (t.getEditText() != null && t2.getEditText() != null && t.getEditText().getText() != null && t2.getEditText().getText() != null) {
+                value = "#" + t.getEditText().getText().toString();
+                AllaccentColorValue = "#" + t2.getEditText().getText().toString();
+            }
+            if (value != null && AllaccentColorValue != null) {
+                if (isValidColor(value) && isValidColor(AllaccentColorValue)) {
 
                     t.setError(null);
+                    t2.setError(null);
                     t.setErrorEnabled(false);
+                    t2.setErrorEnabled(false);
                     try {
                         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(findViewById(R.id.textField).getWindowToken(), 0);
@@ -144,8 +151,14 @@ public class AppearanceActivity extends AppCompatActivity {
                         t.setError("Invalid hexadecimal value");
                     }
                 } else {
-                    t.setErrorEnabled(true);
-                    t.setError("Please provide a valid hexadecimal value");
+                    if (!isValidColor(value)) {
+                        t.setErrorEnabled(true);
+                        t.setError("Please provide a valid hexadecimal value");
+                    }
+                    if (!isValidColor(AllaccentColorValue)) {
+                        t2.setErrorEnabled(true);
+                        t2.setError("Please provide a valid hexadecimal value");
+                    }
                 }
 
             } else {
@@ -162,7 +175,7 @@ public class AppearanceActivity extends AppCompatActivity {
     private ImageView selectedImageView;
     private boolean isValidColor(String value) {
         // Source : https://stackoverflow.com/a/23155867/14200419
-        Pattern colorPattern = Pattern.compile("#([0-9a-f]{6}|[0-9a-f]{8})");
+        Pattern colorPattern = Pattern.compile("#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})");
         Matcher m = colorPattern.matcher(value);
         return m.matches();
     }

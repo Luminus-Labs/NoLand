@@ -18,7 +18,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.TypedValue;
 import android.view.View;
@@ -84,6 +86,40 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             startActivity(intent);
             Toast.makeText(this, "Installed Apps -> Dynamic Bob", Toast.LENGTH_SHORT).show();
         });
+
+        settings.add(new SettingStruct("Disable Battery Optimization", "Prevent the system from killing the app (Recommended)", "Stability Settings", SettingStruct.TYPE_TOGGLE) {
+            @Override
+            public boolean onAttach(Context ctx) {
+                return isIgnoringBatteryOptimizations();
+            }
+
+            @Override
+            public void onCheckChanged(boolean checked, Context ctx) {
+                if (checked && !isIgnoringBatteryOptimizations()) {
+                    requestBatteryOptimizationExemption();
+                } else if (!checked && isIgnoringBatteryOptimizations()) {
+                    // Cannot easily undo from here, just show message
+                    Toast.makeText(ctx, "Please enable battery optimization in system settings if desired.", Toast.LENGTH_LONG).show();
+                    // Re-check to reflect reality
+                    sharedPreferences.edit().putBoolean("refresh_settings", true).apply();
+                }
+            }
+        });
+
+        settings.add(new SettingStruct("Persistent Service", "Keep the island running more reliably in the background", "Stability Settings", SettingStruct.TYPE_TOGGLE) {
+            @Override
+            public boolean onAttach(Context ctx) {
+                return sharedPreferences.getBoolean("persistent_service", true);
+            }
+
+            @Override
+            public void onCheckChanged(boolean checked, Context ctx) {
+                sharedPreferences.edit().putBoolean("persistent_service", checked).apply();
+            }
+        });
+
+        settings.add(null);
+
         settings.add(new SettingStruct("Configure App Shortcuts", "Select apps to show in the island", "App Settings", SettingStruct.TYPE_CUSTOM) {
             @Override
             public void onClick(Context c) {
@@ -98,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         });
 
-        settings.add(new SettingStruct("Overlay color", "Customize colors and transparency", "App Settings", SettingStruct.TYPE_CUSTOM) {
+        settings.add(new SettingStruct("Appearance", "Customize colors and background image", "App Settings", SettingStruct.TYPE_CUSTOM) {
             @Override
             public void onClick(Context ctx) {
                 startActivity(new Intent(MainActivity.this, AppearanceActivity.class));
@@ -196,6 +232,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     protected void onResume() {
         super.onResume();
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        if (recyclerView != null && recyclerView.getAdapter() != null) {
+            recyclerView.getAdapter().notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -281,6 +320,27 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private int dpToInt(int v) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
+    }
+
+    private boolean isIgnoringBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            return pm.isIgnoringBatteryOptimizations(getPackageName());
+        }
+        return true;
+    }
+
+    private void requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (!pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Battery optimization is already disabled", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public class ItemDecoration extends RecyclerView.ItemDecoration {
